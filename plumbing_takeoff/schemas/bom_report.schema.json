@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BoMReport",
+  "type": "object",
+  "required": ["source_file", "extraction_mode", "items"],
+  "properties": {
+    "source_file": {"type": "string"},
+    "extraction_mode": {"enum": ["vector", "scanned", "mixed"]},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item_name",
+          "category",
+          "size",
+          "quantity",
+          "page_numbers",
+          "evidence_snippets",
+          "confidence_score"
+        ],
+        "properties": {
+          "item_name": {"type": "string"},
+          "category": {"enum": ["fixture", "pipe", "fitting", "other"]},
+          "size": {"type": "string"},
+          "quantity": {"type": "number", "minimum": 0},
+          "page_numbers": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+          "evidence_snippets": {"type": "array", "items": {"type": "string"}},
+          "confidence_score": {"type": "number", "minimum": 0, "maximum": 1}
+        }
+      }
+    }
+  }
+}
