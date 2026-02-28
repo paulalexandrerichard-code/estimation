@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plumbing-takeoff"
+version = "0.1.0"
+description = "Plumbing Takeoff MVP"
+requires-python = ">=3.11"
+dependencies = [
+  "pyside6>=6.7",
+  "openai>=1.40",
+  "pymupdf>=1.24",
+  "pydantic>=2.8",
+  "pandas>=2.2",
+  "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+  "ruff>=0.5",
+  "black>=24.8",
+  "pyinstaller>=6.10",
+  "python-semantic-release>=9.8",
+]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.coverage.run]
+source = ["plumbing_takeoff"]
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+
+[tool.semantic_release]
+version_toml = []
+version_variables = ["plumbing_takeoff/__init__.py:__version__"]
+branch = "main"
+changelog_file = "CHANGELOG.md"
+commit_parser = "conventional"
+tag_format = "v{version}"
+build_command = "python -m pip install build && python -m build"
+
+[tool.semantic_release.publish]
+upload_to_vcs_release = true
+
+[tool.semantic_release.commit_author]
+env = "GIT_COMMIT_AUTHOR"
+default = "semantic-release <semantic-release@users.noreply.github.com>"

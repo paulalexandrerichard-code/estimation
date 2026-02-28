@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: bash scripts/build_linux.sh
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: plumbing-takeoff-${{ matrix.os }}
+          path: dist/**
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Generate release notes
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 "$GITHUB_SHA^" 2>/dev/null || true)
+          if [ -n "$PREV_TAG" ]; then
+            git log --pretty=format:'- %s' "$PREV_TAG".."$GITHUB_SHA" > RELEASE_NOTES.md
+          else
+            git log --pretty=format:'- %s' "$GITHUB_SHA" > RELEASE_NOTES.md
+          fi
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: RELEASE_NOTES.md
+          files: artifacts/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
